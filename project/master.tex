@@ -1,0 +1,185 @@
+\documentclass[11pt]{article}
+
+\usepackage{tgpagella} % Palantino font
+\usepackage{mathpazo}  % Palantino math font
+\usepackage[english]{babel}	 %Language
+\usepackage[utf8]{inputenc} % Special signs as æ,ø,å
+\usepackage[usenames]{color}
+% MATHEMATICS
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{mathrsfs}
+\usepackage{nicefrac} % Nice fracs in inline mathmode
+\usepackage{bm} % Boldface math
+%______________________________
+
+% Bibliography and appendices
+\usepackage[nottoc]{tocbibind}
+\bibliographystyle{apalike}
+
+\usepackage{appendix}
+%\renewcommand\appendixtocname{Appendikser} %Adds appendikser instead of appendices 
+
+
+%Fixing continuous indexing over chapter
+%\usepackage{chngcntr}
+%\counterwithout{footnote}{chapter}
+%______________________________
+
+% RANDOM
+\usepackage[table,xcdraw,svgnames]{xcolor} % Additional colors
+%\usepackage{wasysym} % Funny symbols
+%\usepackage{listings} % Displaying code, e.g. Python in latex
+% Defining R environment within listings
+%\usepackage[lmargin=1.5cm,rmargin=2.5cm]{geometry}
+\usepackage[margin=2.5cm, tmargin=2.5cm]{geometry} % Easy interface for page dimension. (laver margener rigtige)
+\usepackage{enumitem} % Control to enumerate/itemize environment 
+%\usepackage{lastpage} % Last page with ease
+\usepackage{titling} %Titlepage without number
+\usepackage[indentfirst=false,rightmargin=0pt]{quoting} %package to make qoutes, only used if first line should no be indented
+\usepackage[colorinlistoftodos,prependcaption, ,textsize=footnotesize]{todonotes} %Todo notes
+\linespread{1.3} % Line spread
+\usepackage{multicol} %Multiple colums in itemize fx
+\usepackage{dirtytalk} % \say{} command for in-line quotation.
+\usepackage[font=small,labelfont=bf]{caption} % Small font for captions.
+%______________________________
+
+% Graphics 
+\usepackage{graphicx} %Inserting pictures
+\usepackage{grffile}
+\usepackage{subcaption} %Inserting multiple pictures in one figure
+% Quite big packages, uncomment if needed.
+%\usepackage{tikz} 
+%\usepackage{pgfplots}
+%\usepackage{hyperrefpgfplots}
+%\pgfplotsset{compat=1.13} 
+%\usepgfplotslibrary{fillbetween}
+%\usetikzlibrary{positioning}
+%______________________________
+
+% Header 
+\usepackage{fancyhdr} 
+\usepackage{textcase}
+\pagestyle{fancyplain}
+\setlength{\headheight}{16pt} % Fixing headhight
+%______________________________
+
+\usepackage[colorlinks]{hyperref}
+\AtBeginDocument{%
+  \hypersetup{
+    citecolor=SteelBlue,
+    linkcolor=SteelBlue,   
+    urlcolor=SteelBlue}}
+%Colorlinks for colored citation insted of boxes. SVG color names in hypersetup
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% Custom Commands
+\newcommand{\setm}{\setminus}
+\newcommand{\n}{\mathbb{N}}
+\newcommand{\z}{\mathbb{Z}}
+\newcommand{\q}{\mathbb{Q}}
+\newcommand{\cx}{\mathbb{C}}
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\field}{\mathbb{F}}
+\newcommand{\rz}{\mathfrak{R}z}
+\newcommand{\im}{\mathfrak{I}}
+\newcommand{\oneton}{\{1,2,...,n\}}
+\newcommand\myeq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny def}}}{=}}}
+\newcommand\myeqq{\mathrel{\stackrel{\makebox[0pt]{\mbox{\normalfont\tiny (D2)}}}{=}}}
+\DeclareMathOperator{\interior}{int}
+\newcommand{\indep}{\mathrel{\text{\scalebox{1.07}{$\perp\mkern-10mu\perp$}}}}
+\newcommand{\nindep}{\mathrel{\text{\scalebox{1.07}{$\not\!\perp\mkern-10mu\perp$}}}}
+
+% Theorem etc. environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}{Lemma}[theorem]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{formodning}{Formodning}[section]
+\newtheorem{liste}{List}
+\newtheorem{example}{Example}[subsection]
+
+%______________________________
+% Abstract for article environment setting
+\usepackage{abstract}
+\renewcommand{\abstractnamefont}{\normalfont\normalsize\bfseries}
+\renewcommand{\abstracttextfont}{\normalfont\small}
+\setlength{\absleftindent}{30pt}
+\setlength{\absrightindent}{30pt}
+
+% Article inline sections
+\usepackage{titlesec}
+\titleformat{\subsection}[runin] % Inline subsection
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}[runin] % Inline subsubsection
+{\normalfont\normalsize\itshape}{\thesubsubsection}{1em}{}
+
+
+% Mini table of contents
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} % Dots for sections in article class
+\renewcommand\cftsecafterpnum{\vspace*{-8pt}} % Negative space 
+%______________________________
+
+\usepackage{todonotes}
+\usepackage{comment} %use to comment large chunks of document out 
+
+% Header and Foot.
+\fancyhead[L]
+	{\textit{\footnotesize\scshape\thepage}
+	} 
+\fancyhead[R]
+	{\,
+	}
+\fancyhead[C]
+	{\footnotesize{\textit{John Doe // Project in Statistics, ICA}}
+	}
+
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{} % Page numbering for right footer
+%(\theCurrentPage) af \lastpageref{LastPages}
+
+\title{ICA in Electroencephalography: \\ A Small Pipeline Study}
+\author{John Doe \\ \footnotesize{\textit{Supervisor: }}}
+\date{2020, June}
+
+\begin{document}
+
+	\maketitle
+
+	\input{chapter/abstract}
+
+
+	\begin{center}
+	\begin{minipage}{0.75\textwidth}
+		{\hypersetup{linkcolor=black} % Black links locally
+		\setcounter{tocdepth}{1}
+		\tableofcontents}
+	\end{minipage}
+	\end{center}
+	\clearpage
+
+	\input{chapter/introduction}
+
+	\input{chapter/theory}
+
+	\input{chapter/application}
+
+	\input{chapter/analysis}
+
+	\appendix
+
+	\input{chapter/appendix}
+
+\appendix
+%\backmatter % For some reason backmatter interacts poorly with appendix
+
+	\bibliography{../../master-bib}
+
+
+\end{document}

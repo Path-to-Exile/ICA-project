@@ -1,0 +1,174 @@
+% !TEX root = ‎⁨‎⁨/../../master.tex
+
+\section{Methods \& Results}
+
+In this section we describe our data, our methods and results for our analysis. All code can be found in this stable \href{https://github.com/Path-to-Exile/ICA-prject/tree/b66d3bf7fa5610f5b4380410f5bc6fd35380cc99}{GitHub}\footnote{\url{https://github.com/Path-to-Exile/ICA-prject/tree/b66d3bf7fa5610f5b4380410f5bc6fd35380cc99}} repository.
+
+\subsection{Data Description}\label{sec:data-description}
+
+	The EEG data we consider in this paper was original used in the BCI IV case-competition (see \cite{bcireview2012} for the review article). Note here their objective was different than ours, it will therefore not be possible to compare our results directly. 
+
+	The dataset consists of EEG data from 9 subjects performing 4 different motor imagery tasks. Each person recorded two sessions on different days. Each session consists of 6 runs where each run consists of 48 trials (where the 4 motor imagery tasks are evenly distributed), totaling 288 trials per session per person. Each recording had 22 EEG channels sampled at 250 Hz.
+
+		\begin{figure}
+			\centering
+				\includegraphics[width=0.95\columnwidth]{figures/run-setup}
+			\caption{An illustration of the run setup. Each session is comprised of 6 runs. We discard the three first blocks of calibration. Figure taken from \cite{BCIdataset2008}.}
+			\label{fig:run-setup}
+		\end{figure}
+
+		\begin{figure}
+			\centering
+				\includegraphics[width=0.95\columnwidth]{figures/trial-setup}
+			\caption{An illustration of the trial setup. Each run in Figure \ref{fig:run-setup} is had 48 trials. We only use the data from second 3 to 6, i.e. the motor imagery box, in our analysis. The sampling rate was 250 Hz, meaning we have $3 \time 250 \times 22$ data points for each trial. Figure taken from \cite{BCIdataset2008}.}
+			\label{fig:trial-setup}
+		\end{figure}
+
+	There has already been conducted some preprocessing on the data. A bandpass filter between 0.5 and 100 Hz and a 50 Hz notch filter have been applied. Furthermore an expert has marked all suspected artifacts, e.g. accidentally eye movement or muscle cramps, which we remove from the data from the onset. We have decided that this step does not warrant a complete removal of any persons data, although there will be some discrepancy between the number of valid trials between some persons. 
+
+\subsection{The Pipeline Study}\label{sec:experimental-setup}
+
+	The computation required for our comparison analysis grows exponentially in the number of hyper-parameters in consideration. We therefore had to make some choices ourselves. We settled with 3 knobs each having two settings to turn, resulting in 8 different pipelines. Our metric for performance was prediction accuracy of which motor imagery task the subject was performing. 
+
+	It could be fruitful to consider this performance criterion before continuing. Other performance criteria exist, e.g. the $\kappa$ coefficient which \cite{bcireview2012} used in the BCI case competition. These and similar criteria, however, have one clear problem. They are not assessing how good the ICA method is in itself. They are only assessing the performance in conjunction with multiple other, possible just as important, components. Granted, it is hard to point to a performance assessing method without this fault as no one knows how true brain-signals should look like. This should not refrain anybody from doing data analysis on EEG data, but it should be kept in mind.
+
+	Our pipeline consisted of the following steps. The steps in \textbf{bold} were changed between pipelines.
+
+		\begin{enumerate}[noitemsep]
+			\item Initial Preprocessing 
+			\item \textbf{Projecting onto the orthogonal complement of the null component}
+				\begin{itemize}[noitemsep]
+					\item Yes
+					\item No
+				\end{itemize}
+			\item ICA method
+				\begin{itemize}[noitemsep]
+					\item 1. fastICA / 2. SOBI\footnote{I was never able to resolve an issue regarding an unreasonably growing condition of number of unmixing matrices for the SOBI algorithm. I have still chosen to include my SOBI results, but the resulting accuracy score in each pipeline may be a bit lower than expected since the algorithm may have terminated early.} / 3. choiICA (var) / 4. coroICA (var) 
+				\end{itemize}
+			\item \textbf{Bandpass filter}
+				\begin{itemize}[noitemsep]
+					\item $\beta$ band
+					\item $\alpha$ and $\beta$ band
+				\end{itemize}
+			\item Feature Extraction
+			\item \textbf{Classification}
+				\begin{itemize}[noitemsep]
+					\item Quadratic Discriminant Analysis
+					\item Random Forest
+				\end{itemize}
+		\end{enumerate}
+	
+	We used Python for all our EEG pipelines. We used SciKit-learn \cite{scikit-learn} for the implementation of the fastICA and for the classification algorithms used. We used the coroICA package \cite{pfister2019} for implementation of the SOBI, choiICA (var) and coroICA (var) algorithms. We used the SciPy package \cite{2020SciPy-NMeth} for bandpass filtering. Discussion on the initial preprocessing and the ICA methods are already described in Section \ref{sec:ica-algorithms} and \ref{sec:data-description}. 
+
+	\subsubsection{Common Average Reference} Another preprocessing step we employed was projecting the data onto the orthogonal complement of the null component. Note that this amounts to doing a CAR (common average reference) which is a standard method to reduce spatial noise between electrodes \cite[p.176]{christoph2019}. To ease the discussion of this, we refer to this simply as CAR which constitutes our first knob as we tested the ICA's performance with and without it.
+
+	\subsubsection{Band-Pass filtering} Before feature extraction we bandpass filtered our data. Unfortunately EEG bands is a point of contention in the literature as no standard exists\footnote{cf. \cite{newson2019} for a discussion on this.}. Different authors will define the same EEG bands in slightly different ranges and in turn their bandpass filtering will be different. In this paper we have chosen to define the frequency range of the $\alpha$ band as $]8-13]$ Hz and the frequency range for the $\beta$ band as the $]13-30[$ Hz, which is in line with the most common cut-offs found in the literature according to \cite{newson2019}. 
+
+	How we implemented the band-pass filtering is the second knob in our pipelines. a) We bandpass filtered our data in the $\beta$ band and the extracted the band-power features as the logarithmic variance. b) We employed two bandpass filters one in the $\beta$ range and one in the $\alpha$ range. We then extracted band-power features as the logarithmic variance for both of the filters. 
+
+	\subsubsection{Classifier} Our third knob was choice of classifier. We used an Quadratic Discriminant Analysis classifier with a shrinkage parameter of $0.1$ and an ordinary Random Forest classifier. We then assessed accuracy against the known true values.
+
+	For our comparison experiment we trained on a random sample of 4 subjects and tested against the remaining 5 subjects. We performed each pipeline 20 times sampling a random subset of 4 subjects. We summarize our result in Figure \ref{fig:pipeline_result} and Table \ref{tab:accuracy-score}.
+
+	We calculated \textit{Beat in percentage} for each combination of ICA methods as the percentage of times the first ICA method resulted in better performed than the second ICA wrt. to subset of subjects and pipeline choice. \textit{Difference in percentage point} was similarly calculated as average percentage point difference in performance wrt. specific subset of subjects and pipeline choice.
+
+	\begin{figure}
+		\center
+			\includegraphics[width=0.95\columnwidth]{figures/pipeline_v_2.pdf}
+			\caption{Results of all eight pipelines sorted by ICA method used. alpha/beta means we used both an $\alpha$ and a $\beta$ bandpass filter. The dashed red line represent an accuracy of $25\%$ which correspond to a random guess.}
+		\label{fig:pipeline_result}
+	\end{figure}
+
+	\begin{table}
+	\begin{small}
+	\parbox{.45\linewidth}{
+	\centering
+		\begin{tabular}{rlr}
+  			\hline
+ 			& Pipeline & Accuracy \\ 
+  			\hline
+			1 & QDA, CAR, alpha+beta & 0.306 \\ 
+  			2 & QDA, CAR, beta & 0.313 \\ 
+  			3 & QDA, no-CAR, alpha+beta & 0.306 \\ 
+  			4 & QDA, no-CAR, beta & 0.305 \\ 
+  			5 & RF, CAR, alpha+beta & 0.285 \\ 
+  			6 & RF, CAR, beta & 0.294 \\ 
+  			7 & RF, no-CAR, alpha+beta & 0.296 \\ 
+  			8 & RF, no-CAR, beta & 0.302 \\ 
+		   \hline
+		\end{tabular}}
+		\parbox{.45\linewidth}{
+		\centering
+		\begin{tabular}{r|lr}
+		\hline
+			 ICA vs. & Beat in pct. & Dif. in pp. \\
+			 \hline 
+			 fastICA vs. SOBI (var) & 0.756 & 1.69 \\
+			 coroICA vs. SOBI (var) & 0.731 &  1.29 \\
+			 choiICA vs. SOBI (var) & 0.706 &  0.934 \\
+			 fastICA vs. choiICA (var) & 0.700 & 0.760 \\
+			 fastICA vs. coroICA (var) & 0.619 &  0.403 \\
+			 coroICA vs. choiICA (var) & 0.550 & 0.357 \\
+		\end{tabular}}
+		\end{small}
+		\caption{To the left we see each pipeline with their mean accuracy score over all ICA methods. To the right we see a sorted comparison of accuracy scores between each ICA method for each subset of subject over all pipelines. We emphasize again that we only compared the ICA methods under the exact same conditions. }
+		\label{tab:accuracy-score}
+	\end{table}
+
+	Using \texttt{R} we fitted a linear model using the pipeline choices as main effects and accuracy as response which can be seen in Table \ref{tab:glm-output}. We corroborate on the meaning and the interpretation (especially limitations thereof) in Section \ref{sec:analysis}.
+
+	\begin{table}
+		\centering
+		\begin{small}
+		\begin{tabular}{rrrrr}
+			\hline
+ 			& Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  			\hline
+			(Intercept) & 0.2966 & 0.0025 & 119.68 & 0.0000 \\ 
+  			bandbeta & 0.0052 & 0.0019 & 2.80 & 0.0053 \\ 
+  			clfRF & -0.0134 & 0.0019 & -7.18 & 0.0000 \\ 
+  			ICA\_methodchoiICA (var) & 0.0093 & 0.0026 & 3.52 & 0.0005 \\ 
+  			ICA\_methodcoroICA (var) & 0.0129 & 0.0026 & 4.87 & 0.0000 \\ 
+  			ICA\_methodfastICA & 0.0169 & 0.0026 & 6.39 & 0.0000 \\ 
+  			CAR & -0.0028 & 0.0019 & -1.52 & 0.1296 \\ 
+   			\hline
+		\end{tabular}
+		\end{small}
+		\caption{\texttt{R} output for our fitted LM.}
+		\label{tab:glm-output}
+\end{table}
+
+\subsection{Further Experiments}
+
+	We also compared the QDA pipelines where we used an $\alpha$ and a $\beta$ bandpass filter from before to pipelines where we used a wider bandpass filter encompassing both the $\alpha$ and $\beta$ range. We used the same methodology as before with the exception that we dropped the SOBI algorithm for our new pipeline comparison. Our results can be seen in Figure \ref{fig:band_comparison}. The difference in performance between using two filters vs. using one larger filter over both pipelines (with and without CAR) was $0.790$ percentage points in favor of using one larger filter. Note however we re-sampled the subsets for the two new pipeline.
+
+	\begin{figure}
+		\center
+			\includegraphics[width=0.95\columnwidth]{figures/band_comparison.pdf}
+			\caption{Comparison between pipelines where we used two separate bandpass filters, one in the $\alpha$ range and one in the $\beta$ range, and pipelines where we used one bandpass filter in the $\alpha + \beta$ range, i.e. $]8,30[$ Hz range.}
+		\label{fig:band_comparison}
+	\end{figure}
+
+	We choose to pursue a larger analysis on the pipeline without CAR, $\beta$-band filtering, QDA classifier and only considering FastICA, coroICA and choiICA. We trained on 1 through 9 subjects, each time taking a random sample with replacement, and tested against the remaining subjects. We performed this 20 times for each number of training subjects. Our results are summarized in Figure \ref{fig:big-analysis} and Table \ref{tab:big-analysis} in Appendix \ref{app:subset-table}.
+
+	\begin{figure}
+		\center
+			\includegraphics[width=0.95\columnwidth]{figures/big-analysis.pdf}
+			\caption{The accuracy of each ICA method for each number of subjects trained on.}
+		\label{fig:big-analysis}
+	\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
